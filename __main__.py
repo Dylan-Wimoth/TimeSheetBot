@@ -1,11 +1,16 @@
 from distutils.spawn import find_executable
+from re import T
+from tkinter import CURRENT
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
 import os
+import sys
 import time
+import threading
 
 WAIT_TIME = 120
-
+ 
 #Opens text file and reads in data
 try:
     file = open('timesheet.txt', 'r')
@@ -19,9 +24,19 @@ data = []
 #Gets rid of new lines characters
 #Adds informatin to data list
 for i in range(len(f)):
+    #Gets rid of new line character
     if (i != len(f) - 1):
         item = f[i][:-1]
-        data.append(item)
+    else:
+        item = f[i]
+    data.append(item)
+    
+#makes time data into lists
+times_to_add = 0
+for i in range(len(data)):
+    if (i != 0):
+        times_to_add += 1
+        data[i] = data[i].split()
 
 #adjusts the first piece of data so it can be used as a file path
 data[0] = data[0].replace('\\', '/')
@@ -33,7 +48,7 @@ try:
     driver.get('https://my.umbc.edu/')
 except NameError:
     print("File path was not correct. Look at first line of text file")
-    driver.quit()
+    quit()
 
 #clicks the log in button
 button = driver.find_element(By.XPATH, '/html/body/header/div[1]/a[7]')
@@ -48,24 +63,24 @@ seconds = 0
 
 print("Please log into your account within 2 minutes or the program will close")
 while seconds != WAIT_TIME:
-    #Determines if user has logged in
+    # Determines if user has logged in
     try:
-        #Clicks the user icon on the top left of myumbc
+        # Clicks the user icon on the top left of myumbc
         button = driver.find_element(By.XPATH, "/html/body/header/div[1]/div[4]/aside/div[1]/div[7]")
         button.click()
         break
 
-    #Keeps track of seconds.
-    #Seconds increase if the program can't click time sheet button
+    # Keeps track of seconds.
+    # Seconds increase if the program can't click time sheet button
     except:
         seconds += 1
-    print(seconds)
+    # print(seconds)
 
     time.sleep(1)
 
-#closes program if the user doesn't log in
+# closes program if the user doesn't log in
 if seconds == WAIT_TIME:
-    driver.quit()
+    quit()
 
 # clicks "view profile"
 button = driver.find_element(By.XPATH, "/html/body/header/div[1]/div[4]/aside/div[2]/div[5]/div[1]/div[2]/div[3]/a")
@@ -75,25 +90,91 @@ button.click()
 button = driver.find_element(By.XPATH,'/html/body/header/div[4]/div[2]/div[3]/a[4]')
 button.click()
 
-#Keeps track of the different tabs and switches the main tab
+# Keeps track of the different tabs and switches the main tab
 tabs = driver.window_handles
 current_tab = tabs[1]
 
-#switches to current tab
+# switches to current tab
 driver.switch_to.window(current_tab)
 
-#Waits until the Time Sheet page loads before moving on
+# Waits until the Time Sheet page loads before moving on
 while (driver.title != "Employee Time Sheet WorkCenter"):
     time.sleep(1)
 
-#switches to the correct frame
+# switches to the correct frame
 driver.switch_to.frame(driver.find_element(By.NAME, "TargetContent"))
 
-#Clicks on the timesheet if there is one
+# Clicks on the timesheet if there is one
 try:
     button = driver.find_element(By.XPATH, "/html/body/form/div[5]/table/tbody/tr/td/div/table/tbody/tr[6]/td[2]/div/table/tbody/tr[3]/td/table/tbody/tr[2]/td[5]/div/span/a")
     button.click()
 except:
     print("No timesheet to click")
-    driver.quit()
+    quit()
 
+# Goes back to the main frame
+driver.switch_to.parent_frame()
+# Waits for page to update
+time.sleep(1)
+
+driver.switch_to.frame(driver.find_element(By.XPATH, "/html/body/div[8]/div[2]/div/div[2]/iframe"))
+
+#Finds boxes to select location and schedule
+select_work_1 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK1_LOC"))
+select_sched_1 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK1_SCHED"))
+select_work_2 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK2_LOC"))
+select_sched_2 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK2_SCHED"))
+
+#selects options with boxes
+select_work_1.select_by_visible_text("On-site")
+select_sched_1.select_by_visible_text("Regular")
+select_work_2.select_by_visible_text("On-site")
+select_sched_2.select_by_visible_text("Regular")
+
+#adds boxes and times into boxes
+#for i in range((times_to_add * 2) - 1):
+for i in range((times_to_add * 2) - 1):
+    #adds new row to timesheet
+    button = driver.find_element(By.XPATH, "/html/body/form/div[3]/table/tbody/tr[1]/td/div/table/tbody/tr[6]/td[2]/div/table/tbody/tr[3]/td[10]/div/a")
+    button.click()
+    time.sleep(.3)
+
+#inputs data to timesheet for week 1
+for i in range(times_to_add):
+    #finds input boxes
+    inputElementIN = driver.find_element(By.ID, "UM_TIME_IN$" + str(i))
+    inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
+
+    #inserts time in data
+    inputElementIN.send_keys(data[i+1][0])
+    time.sleep(.2)
+
+    #insertstemp data to get past page refresh
+    inputElementOUT.send_keys("null")
+    time.sleep(.5)
+
+    #inserts time out data
+    inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
+    time.sleep(.2)
+    inputElementOUT.send_keys(data[i+1][1])
+    time.sleep(.5)
+
+#inputs data to timesheet for week 2
+for i in range(times_to_add):
+    #finds input boxes
+    inputElementIN = driver.find_element(By.ID, "UM_TIME_IN$" + str(i + times_to_add))
+    inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i + times_to_add))
+
+    #inserts time in data
+    inputElementIN.send_keys(data[i+1][0])
+    time.sleep(.2)
+
+    #insertstemp data to get past page refresh
+    inputElementOUT.send_keys("null")
+    time.sleep(.5)
+
+    #inserts time out data
+    inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i  + times_to_add))
+    time.sleep(.2)
+    inputElementOUT.send_keys(data[i+1][1])
+    time.sleep(.5)
