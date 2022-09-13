@@ -1,5 +1,4 @@
 from distutils.spawn import find_executable
-from re import T
 from tkinter import CURRENT
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -7,9 +6,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
-import sys
 import time
-import threading
 
 WAIT_TIME = 120
  
@@ -35,7 +32,7 @@ for i in range(len(f)):
     f[i] = f[i].replace('\n','')
     data.append(f[i])
     
-# makes time data into lists
+# Makes time data into lists
 times_to_add = 0
 for i in range(len(data)):
     times_to_add += 1
@@ -52,7 +49,7 @@ except NameError:
 # Makes driver full screen
 driver.maximize_window()
 
-# clicks the log in button
+# Clicks the log in button
 button = driver.find_element(By.XPATH, '/html/body/header/div[1]/a[7]')
 button.click()
 
@@ -63,6 +60,7 @@ button.click()
 # Keeps track of seconds
 seconds = 0
 
+#Gives the user 2 minutes to log into system else the program quits
 print("Please log into your account within 2 minutes or the program will close")
 while seconds != WAIT_TIME:
     # Determines if user has logged in
@@ -76,15 +74,14 @@ while seconds != WAIT_TIME:
     # Seconds increase if the program can't click time sheet button
     except:
         seconds += 1
-    # print(seconds)
 
     time.sleep(1)
 
-# closes program if the user doesn't log in
+# Closes program if the user doesn't log in
 if seconds == WAIT_TIME:
     quit()
 
-# clicks "view profile"
+# Clicks "view profile"
 button = driver.find_element(By.XPATH, "/html/body/header/div[1]/div[4]/aside/div[2]/div[5]/div[1]/div[2]/div[3]/a")
 button.click()
 
@@ -96,14 +93,14 @@ button.click()
 tabs = driver.window_handles
 current_tab = tabs[1]
 
-# switches to current tab
+# Switches to current tab
 driver.switch_to.window(current_tab)
 
 # Waits until the Time Sheet page loads before moving on
 while (driver.title != "Employee Time Sheet WorkCenter"):
     time.sleep(1)
 
-# switches to the correct frame
+# Switches to the correct frame
 driver.switch_to.frame(driver.find_element(By.NAME, "TargetContent"))
 
 # Clicks on the timesheet if there is one
@@ -127,34 +124,34 @@ select_sched_1 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK1_SCHED"))
 select_work_2 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK2_LOC"))
 select_sched_2 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK2_SCHED"))
 
-# selects options with boxes
+# Selects options with boxes
 select_work_1.select_by_visible_text("On-site")
 select_sched_1.select_by_visible_text("Regular")
 select_work_2.select_by_visible_text("On-site")
 select_sched_2.select_by_visible_text("Regular")
 
-# adds boxes and times into boxes
+# Adds boxes and times into boxes
 for i in range((times_to_add * 2) - 1):
     # adds new row to timesheet
     button = driver.find_element(By.XPATH, "/html/body/form/div[3]/table/tbody/tr[1]/td/div/table/tbody/tr[6]/td[2]/div/table/tbody/tr[3]/td[10]/div/a")
     button.click()
     time.sleep(.5)
 
-# inputs data to timesheet
+# Inputs data to timesheet
 for i in range(times_to_add * 2):
-    # finds input boxes
+    # Finds input boxes
     inputElementIN = driver.find_element(By.ID, "UM_TIME_IN$" + str(i))
     inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
 
-    # inserts time in data
+    # Inserts time in data
     inputElementIN.send_keys(data[i % times_to_add][0])
     time.sleep(.2)
 
-    # insertstemp data to get past page refresh
+    # Insertstemp data to get past page refresh
     inputElementOUT.send_keys("null")
     time.sleep(.5)
 
-    # inserts time out data
+    # Inserts time out data
     inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
     time.sleep(.2)
     inputElementOUT.send_keys(data[i % times_to_add][1])
