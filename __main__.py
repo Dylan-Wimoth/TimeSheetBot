@@ -4,6 +4,8 @@ from tkinter import CURRENT
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import os
 import sys
 import time
@@ -11,7 +13,7 @@ import threading
 
 WAIT_TIME = 120
  
-#Opens text file and reads in data
+# Opens text file and reads in data
 try:
     file = open('timesheet.txt', 'r')
     f = file.readlines()
@@ -19,38 +21,38 @@ except FileNotFoundError:
     print("timesheet.txt is not in the correct spot or is named incorrectly")
     quit()
 
+# Stores information from text file
 data = []
 
-#Gets rid of new lines characters
-#Adds informatin to data list
+# Gets and Formats current working location to find chrome driver
+cwd = os.getcwd()
+cwd = cwd.replace('\\', '/')
+cwd += '/chromeDriver'
+
+# Gets rid of new lines characters
+# Adds informatin to data list
 for i in range(len(f)):
-    #Gets rid of new line character
-    if (i != len(f) - 1):
-        item = f[i][:-1]
-    else:
-        item = f[i]
-    data.append(item)
+    f[i] = f[i].replace('\n','')
+    data.append(f[i])
     
-#makes time data into lists
+# makes time data into lists
 times_to_add = 0
 for i in range(len(data)):
-    if (i != 0):
-        times_to_add += 1
-        data[i] = data[i].split()
-
-#adjusts the first piece of data so it can be used as a file path
-data[0] = data[0].replace('\\', '/')
-data[0] = data[0] + '/chromedriver'
+    times_to_add += 1
+    data[i] = data[i].split()
 
 try:
     # Initiate the driver and go to my umbc
-    driver = webdriver.Chrome(data[0])
+    driver = webdriver.Chrome(cwd)
     driver.get('https://my.umbc.edu/')
 except NameError:
     print("File path was not correct. Look at first line of text file")
     quit()
 
-#clicks the log in button
+# Makes driver full screen
+driver.maximize_window()
+
+# clicks the log in button
 button = driver.find_element(By.XPATH, '/html/body/header/div[1]/a[7]')
 button.click()
 
@@ -119,62 +121,41 @@ time.sleep(1)
 
 driver.switch_to.frame(driver.find_element(By.XPATH, "/html/body/div[8]/div[2]/div/div[2]/iframe"))
 
-#Finds boxes to select location and schedule
+# Finds boxes to select location and schedule
 select_work_1 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK1_LOC"))
 select_sched_1 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK1_SCHED"))
 select_work_2 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK2_LOC"))
 select_sched_2 = Select(driver.find_element(By.ID,"UM_ETS_UM_WEEK2_SCHED"))
 
-#selects options with boxes
+# selects options with boxes
 select_work_1.select_by_visible_text("On-site")
 select_sched_1.select_by_visible_text("Regular")
 select_work_2.select_by_visible_text("On-site")
 select_sched_2.select_by_visible_text("Regular")
 
-#adds boxes and times into boxes
-#for i in range((times_to_add * 2) - 1):
+# adds boxes and times into boxes
 for i in range((times_to_add * 2) - 1):
-    #adds new row to timesheet
+    # adds new row to timesheet
     button = driver.find_element(By.XPATH, "/html/body/form/div[3]/table/tbody/tr[1]/td/div/table/tbody/tr[6]/td[2]/div/table/tbody/tr[3]/td[10]/div/a")
     button.click()
-    time.sleep(.3)
+    time.sleep(.5)
 
-#inputs data to timesheet for week 1
-for i in range(times_to_add):
-    #finds input boxes
+# inputs data to timesheet
+for i in range(times_to_add * 2):
+    # finds input boxes
     inputElementIN = driver.find_element(By.ID, "UM_TIME_IN$" + str(i))
     inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
 
-    #inserts time in data
-    inputElementIN.send_keys(data[i+1][0])
+    # inserts time in data
+    inputElementIN.send_keys(data[i % times_to_add][0])
     time.sleep(.2)
 
-    #insertstemp data to get past page refresh
+    # insertstemp data to get past page refresh
     inputElementOUT.send_keys("null")
     time.sleep(.5)
 
-    #inserts time out data
+    # inserts time out data
     inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
     time.sleep(.2)
-    inputElementOUT.send_keys(data[i+1][1])
-    time.sleep(.5)
-
-#inputs data to timesheet for week 2
-for i in range(times_to_add):
-    #finds input boxes
-    inputElementIN = driver.find_element(By.ID, "UM_TIME_IN$" + str(i + times_to_add))
-    inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i + times_to_add))
-
-    #inserts time in data
-    inputElementIN.send_keys(data[i+1][0])
-    time.sleep(.2)
-
-    #insertstemp data to get past page refresh
-    inputElementOUT.send_keys("null")
-    time.sleep(.5)
-
-    #inserts time out data
-    inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i  + times_to_add))
-    time.sleep(.2)
-    inputElementOUT.send_keys(data[i+1][1])
+    inputElementOUT.send_keys(data[i % times_to_add][1])
     time.sleep(.5)
