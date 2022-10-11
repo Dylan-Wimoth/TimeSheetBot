@@ -3,13 +3,50 @@ from tkinter import CURRENT
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import os
 import time
+import datetime
+import pandas as pd
 
 WAIT_TIME = 120
  
+daysDict = {
+    1: "Monday",
+    2: "Tuesday",
+    3: "Wednesday",
+    4: "Thursday",
+    5: "Friday"
+}
+
+def getStartDate():
+    current_day = pd.Timestamp(datetime.datetime.today()).day_name()
+
+    if (current_day == daysDict[1]):
+        print("Today is Monday")
+        return datetime.datetime.today() - datetime.timedelta(days=7)
+    if (current_day == daysDict[2]):
+        print("Today is Tuesday")
+        return datetime.datetime.today() - datetime.timedelta(days=8)
+    if (current_day == daysDict[3]):
+        print("Today is Wednesday")
+        return datetime.datetime.today() - datetime.timedelta(days=9)
+    if (current_day == daysDict[4]):
+        print("Today is Thursday")
+        return datetime.datetime.today() - datetime.timedelta(days=10)
+    if (current_day == daysDict[5]):
+        print("Today is Friday")
+        return datetime.datetime.today() - datetime.timedelta(days=11)
+
+#Formats the date so it can be inputted into the timesheet
+def format_date(current_date):
+    current_date = str(current_date)[:10]
+    day = current_date[8:]
+    month = current_date[5:7]
+    year = current_date[:4]
+    return month + '/' + day + '/' + year
+
+START_DAY = getStartDate()
+
 # Opens text file and reads in data
 try:
     file = open('timesheet.txt', 'r')
@@ -130,7 +167,7 @@ select_sched_1.select_by_visible_text("Regular")
 select_work_2.select_by_visible_text("On-site")
 select_sched_2.select_by_visible_text("Regular")
 
-# Adds boxes and times into boxes
+# Adds rows for days/time
 for i in range((times_to_add * 2) - 1):
     # adds new row to timesheet
     button = driver.find_element(By.XPATH, "/html/body/form/div[3]/table/tbody/tr[1]/td/div/table/tbody/tr[6]/td[2]/div/table/tbody/tr[3]/td[10]/div/a")
@@ -139,20 +176,26 @@ for i in range((times_to_add * 2) - 1):
 
 # Inputs data to timesheet
 for i in range(times_to_add * 2):
+    if (i < times_to_add):
+        current_day = format_date(START_DAY + datetime.timedelta(days=int(data[i][2]) - 1))
+    else:
+        current_day = format_date(START_DAY + datetime.timedelta(days=int(data[i % times_to_add][2]) + 6))
+
     # Finds input boxes
     inputElementIN = driver.find_element(By.ID, "UM_TIME_IN$" + str(i))
     inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
+    inputElementDATE = driver.find_element(By.ID, "UM_WORK_DATE$" + str(i))
+
+    # Inserts date
+    inputElementDATE.send_keys(current_day)
+    time.sleep(.4)
 
     # Inserts time in data
     inputElementIN.send_keys(data[i % times_to_add][0])
-    time.sleep(.2)
-
-    # Insertstemp data to get past page refresh
-    inputElementOUT.send_keys("null")
-    time.sleep(.5)
+    time.sleep(.4)
 
     # Inserts time out data
     inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
-    time.sleep(.2)
+    time.sleep(.4)
     inputElementOUT.send_keys(data[i % times_to_add][1])
     time.sleep(.5)
