@@ -193,5 +193,8 @@ for i in range(times_to_add * 2):
     # Inserts time out data
     inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
     time.sleep(.4)
+    inputElementOUT.send_keys("Null")
+    time.sleep(.3)
+    inputElementOUT = driver.find_element(By.ID, "UM_TIME_OUT$" + str(i))
     inputElementOUT.send_keys(data[i % times_to_add][1])
     time.sleep(.5)
