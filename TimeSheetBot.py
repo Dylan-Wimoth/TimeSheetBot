@@ -251,4 +251,4 @@ if __name__ == "__main__":
     open_timesheet(driver, wait)
     insert_times(wait, work_times)
 
-    close_program(300)
+    close_program(300) 
