@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import datetime
+from datetime import datetime
 import os.path
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -13,7 +13,7 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 CALENDAR_ID = 'umbc.edu_dqqvhth689kisqrvnp2pf85614@group.calendar.google.com' # modify this if the ID ever changes
 
 
-def main():
+def generateToken():
     """Shows basic usage of the Google Calendar API.
     Prints the start and name of the next 10 events on the user's calendar.
     """
@@ -35,14 +35,23 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
+    return creds
+
+def getEvents(start_date, end_date, name, creds):
+    workdays = []
+
     try:
+        start_date = datetime.strptime(start_date, "%m/%d/%Y")
+        end_date = datetime.strptime(end_date, "%m/%d/%Y")
+
+        time_min = start_date.isoformat()  + 'Z'
+        time_max = end_date.isoformat()  + 'Z'
+
         service = build('calendar', 'v3', credentials=creds)
 
         # Call the Calendar API
-        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-        print('Getting the upcoming 10 events')
-        events_result = service.events().list(calendarId=CALENDAR_ID, timeMin=now,
-                                              maxResults=10, singleEvents=True,
+        events_result = service.events().list(calendarId=CALENDAR_ID, timeMin=time_min, 
+                                              timeMax = time_max, singleEvents=True,
                                               orderBy='startTime').execute()
         events = events_result.get('items', [])
 
@@ -52,14 +61,29 @@ def main():
 
         # Prints the start and name of the next 10 events
         for event in events:
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            end = event['end'].get('dateTime', event['end'].get('date'))
-            print(start, '-', end,  event['summary'])
+            if event['summary'].lower() == name.lower():    
+                start = event['start'].get('dateTime', event['start'].get('date'))
+                end = event['end'].get('dateTime', event['end'].get('date'))
+                
+                start_dt = datetime.fromisoformat(start)
+                end_dt = datetime.fromisoformat(end)
+
+                formatted_date = start_dt.strftime("%m/%d/%Y")
+                formatted_start = start_dt.strftime("%I:%M%p")
+                formatted_end = end_dt.strftime("%I:%M%p")
+
+                if formatted_start[0] == '0':
+                    formatted_start = formatted_start[1:]
+
+                if formatted_end[0] == '0':
+                    formatted_end = formatted_end[1:]
+
+                workdays.append([formatted_date, formatted_start, formatted_end])
+
+
+
 
     except HttpError as error:
         print('An error occurred: %s' % error)
 
-
-
-if __name__ == '__main__':
-    main()
+    return workdays

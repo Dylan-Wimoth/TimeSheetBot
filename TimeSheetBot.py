@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import Select
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import PySimpleGUI as sg
 import time
 import datetime
 import pandas as pd
@@ -19,72 +20,27 @@ DAYSDICT = {
     5: "Friday"
 }
 
-# Returns the start date for the work period
-def getStartDate():
-    """Determines which day was the start of the pay period
-    This function will only work if the user uses the program on the second week of the pay period
+def getName():
+    layout = [
+        [sg.Text("Please enter your name as seen on Google Calendar")],
+        [sg.InputText(key="-NAME-")],
+        [sg.Button("Submit", bind_return_key=True)]
+    ]
+    window = sg.Window("Name Input", layout)
+    while True:
+        event, values = window.read()
 
-    Returns:
-        The first monday of the pay period
-    """
-    current_day = pd.Timestamp(datetime.datetime.today()).day_name()
+        if event == sg.WINDOW_CLOSED:
+            break
+        elif event == "Submit" and values["-NAME-"]:
+            user_name = values["-NAME-"]
+            break
+    window.close()
 
-    if (current_day == DAYSDICT[1]):
-        return datetime.datetime.today() - datetime.timedelta(days=7)
-    if (current_day == DAYSDICT[2]):
-        return datetime.datetime.today() - datetime.timedelta(days=8)
-    if (current_day == DAYSDICT[3]):
-        return datetime.datetime.today() - datetime.timedelta(days=9)
-    if (current_day == DAYSDICT[4]):
-        return datetime.datetime.today() - datetime.timedelta(days=10)
-    if (current_day == DAYSDICT[5]):
-        return datetime.datetime.today() - datetime.timedelta(days=11)
-
-# Formats the date so it can be inputted into the timesheet
-def format_date(date):
-    """Formats a timedelta object so it can be entered into timesheet
-
-    Args:
-        date: timedelta object that needs to be formatted
-
-    Returns:
-        Formatted timedelta object string in mm/dd/yy format
-    """
-    date = str(date)[:10]
-    day = date[8:]
-    month = date[5:7]
-    year = date[:4]
-    return month + '/' + day + '/' + year
-
-def read_times():
-    """Reads in timesheet.txt and formats it into a list
-
-    Returns:
-        List of worktimes formatted as [[{START}, {END}, {DAY}], ['4:00PM', '5:15PM', '1'], ...]
-    """
-
-    # Opens text file and reads in data
     try:
-        file = open('timesheet.txt', 'r')
-        f = file.readlines()
-    except FileNotFoundError as err:
-        print("Chrome did not open. Error:", err)
-        quit()
-
-    # Stores information from text file
-    data = []
-
-    # Gets rid of new lines characters
-    # Adds informatin to data list
-    for i in range(len(f)):
-        f[i] = f[i].replace('\n','')
-        data.append(f[i])
-        
-    # Makes time data into lists
-    for i in range(len(data)):
-        data[i] = data[i].split()
-    
-    return data
+        return user_name
+    except Exception:
+        print("Please enter your name before closing the window.")
     
 def start_driver():
     """Starts the driver, goes to my.umbc.edu and full screens it. Creates timeout object.
@@ -164,6 +120,10 @@ def open_timesheet(driver, wait):
     # Clicks on the timesheet if there is one
     try:
         button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/form/div[5]/table/tbody/tr/td/div/table/tbody/tr[6]/td[2]/div/table/tbody/tr[3]/td/table/tbody/tr[2]/td[5]/div/span/a")))
+        start_date = driver.find_element(By.ID, "UM_ETS_EMSUM_VW_PAY_BEGIN_DT$0")
+        end_date = driver.find_element(By.ID, "UM_ETS_EMSUM_VW_PAY_END_DT$0")
+        start_date_text = start_date.text
+        end_date_textprint = end_date.text
         button.click()
     except Exception as err:
         print("No timesheet to click. Error:", err)
@@ -177,6 +137,8 @@ def open_timesheet(driver, wait):
 
     # Switches to frame
     driver.switch_to.frame(wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[8]/div[2]/div/div[2]/iframe"))))
+
+    return start_date_text, end_date_textprint
 
 
 def insert_times(wait, data):
@@ -200,36 +162,36 @@ def insert_times(wait, data):
     select_sched_2.select_by_visible_text("Regular")
 
     # Adds rows for days/time
-    for i in range((len(data) * 2) - 1):
+    for i in range(len(data) - 1):
         # adds new row to timesheet
         button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/form/div[3]/table/tbody/tr[1]/td/div/table/tbody/tr[6]/td[2]/div/table/tbody/tr[3]/td[10]/div/a")))
         button.click()
         time.sleep(.3)
 
     # Inputs data to timesheet
-    for i in range(len(data) * 2):
-        # Don't ask me about this math. It works. Idk how
-        if (i < len(data)):
-            current_day = format_date(start_day + datetime.timedelta(days=int(data[i][2]) - 1))
-        else:
-            current_day = format_date(start_day + datetime.timedelta(days=int(data[i % len(data)][2]) + 6))
-
+    for i in range(len(data)):
         # Finds input boxes
         inputElementDATE = wait.until(EC.element_to_be_clickable((By.ID, "UM_WORK_DATE$" + str(i))))
         inputElementIN = wait.until(EC.element_to_be_clickable((By.ID, "UM_TIME_IN$" + str(i))))
         inputElementOUT = wait.until(EC.element_to_be_clickable((By.ID, "UM_TIME_OUT$" + str(i))))
 
         # Inserts date
-        inputElementDATE.send_keys(current_day)
-        time.sleep(.3)
+        inputElementDATE.send_keys(data[i][0])
+        time.sleep(.1)
 
         # Inserts time in data
-        inputElementIN.send_keys(data[i % len(data)][0])
-        time.sleep(.3)
+        inputElementIN.send_keys(data[i][1])
+        time.sleep(.1)
 
         # Inserts time out data
-        inputElementOUT.send_keys(data[i % len(data)][1])
-        time.sleep(.3)
+        inputElementOUT = wait.until(EC.element_to_be_clickable((By.ID, "UM_TIME_OUT$" + str(i))))
+        time.sleep(.1)
+        inputElementOUT.send_keys("null")
+        time.sleep(.1)
+        inputElementOUT = wait.until(EC.element_to_be_clickable((By.ID, "UM_TIME_OUT$" + str(i))))
+        inputElementOUT.send_keys(data[i][2])
+        time.sleep(.1)
+
 
 def close_program(keep_alive):
     """Keeps program open for a specific amount of time
@@ -242,13 +204,3 @@ def close_program(keep_alive):
     while (temp < keep_alive):
         temp += 1
         time.sleep(1)
-
-if __name__ == "__main__":
-    start_day = getStartDate()
-    work_times = read_times()
-    driver, wait = start_driver()
-    user_login(wait)
-    open_timesheet(driver, wait)
-    insert_times(wait, work_times)
-
-    close_program(300) 
