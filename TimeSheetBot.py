@@ -8,39 +8,41 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import PySimpleGUI as sg
 import time
-import datetime
-import pandas as pd
 
 TIME_OUT_SECONDS = 120 # Seconds until the program times out
-DAYSDICT = {
-    1: "Monday",
-    2: "Tuesday",
-    3: "Wednesday",
-    4: "Thursday",
-    5: "Friday"
-}
 
 def getName():
+    """Gets the users name that can be used to parse the google calendar
+
+    Returns:
+        User's name as seen on calendar
+    """
+
     layout = [
         [sg.Text("Please enter your name as seen on Google Calendar")],
         [sg.InputText(key="-NAME-")],
         [sg.Button("Submit", bind_return_key=True)]
     ]
     window = sg.Window("Name Input", layout)
+
     while True:
         event, values = window.read()
 
         if event == sg.WINDOW_CLOSED:
             break
+        # Ensures that the user types a name into the box before submitting
         elif event == "Submit" and values["-NAME-"]:
             user_name = values["-NAME-"]
             break
+
     window.close()
 
+    # Attempt to return the user's name. If unable to do so, quit program
     try:
         return user_name
     except Exception:
         print("Please enter your name before closing the window.")
+        quit()
     
 def start_driver():
     """Starts the driver, goes to my.umbc.edu and full screens it. Creates timeout object.
@@ -58,7 +60,7 @@ def start_driver():
         print("Cannot open chrome. Error:", err)
         quit()
     
-    # Allows the program to timeout after a certain amount of time passes
+    # Forces the program to timeout after a certain amount of time passes
     time_out = WebDriverWait(driver, TIME_OUT_SECONDS)
 
     return driver, time_out
@@ -89,6 +91,10 @@ def open_timesheet(driver, wait):
     Args:
         driver: driver object
         wait: timeout object
+    
+    Returns:
+        The start and end date of the most recent timesheet.
+        Used to retrieve events in-between start and end date
     """
 
     # Clicks the user icon on the top right of myumbc
@@ -199,6 +205,7 @@ def close_program(keep_alive):
     Args:
         keep_alive: seconds that the program should stay open after all instructions complete
     """
+    
     temp = 0
 
     while (temp < keep_alive):

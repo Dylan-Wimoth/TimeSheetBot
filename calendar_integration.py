@@ -1,5 +1,4 @@
 from __future__ import print_function
-
 from datetime import datetime
 import os.path
 from google.auth.transport.requests import Request
@@ -14,6 +13,12 @@ CALENDAR_ID = 'umbc.edu_dqqvhth689kisqrvnp2pf85614@group.calendar.google.com' # 
 
 
 def generateToken():
+    """Generates a Token that allows application to access the user's Google Calendar 
+  
+    Returns:
+        Credentials object
+    """
+
     """Shows basic usage of the Google Calendar API.
     Prints the start and name of the next 10 events on the user's calendar.
     """
@@ -38,9 +43,22 @@ def generateToken():
     return creds
 
 def getEvents(start_date, end_date, name, creds):
+    """Goes through login process. 
+
+    Args:
+        start_date: first day of pay period
+        end_date: last day of pay period
+        name: name of user whose data needs to be collected
+        creds: credentials object
+    
+    Returns:
+        Returns formatted list that can be entered into the timesheet
+        [["9/5/2023", "4:00PM", "6:00PM"],...]
+    """
     workdays = []
 
     try:
+        # Formats dates so it can be entered into API call
         start_date = datetime.strptime(start_date, "%m/%d/%Y")
         end_date = datetime.strptime(end_date, "%m/%d/%Y")
 
@@ -59,12 +77,15 @@ def getEvents(start_date, end_date, name, creds):
             print('No upcoming events found.')
             return
 
-        # Prints the start and name of the next 10 events
+        # Go through each event
         for event in events:
-            if event['summary'].lower() == name.lower():    
+            # If the event title matches the user's name
+            if event['summary'].lower() == name.lower():
+                # Get the start and end time
                 start = event['start'].get('dateTime', event['start'].get('date'))
                 end = event['end'].get('dateTime', event['end'].get('date'))
                 
+                # Format time
                 start_dt = datetime.fromisoformat(start)
                 end_dt = datetime.fromisoformat(end)
 
@@ -72,6 +93,7 @@ def getEvents(start_date, end_date, name, creds):
                 formatted_start = start_dt.strftime("%I:%M%p")
                 formatted_end = end_dt.strftime("%I:%M%p")
 
+                # Removes leading zero from time to reduce stutter when inputting times
                 if formatted_start[0] == '0':
                     formatted_start = formatted_start[1:]
 
@@ -79,9 +101,6 @@ def getEvents(start_date, end_date, name, creds):
                     formatted_end = formatted_end[1:]
 
                 workdays.append([formatted_date, formatted_start, formatted_end])
-
-
-
 
     except HttpError as error:
         print('An error occurred: %s' % error)
