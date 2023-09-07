@@ -183,20 +183,20 @@ def insert_times(wait, data):
 
         # Inserts date
         inputElementDATE.send_keys(data[i][0])
-        time.sleep(.1)
+        time.sleep(.2)
 
         # Inserts time in data
         inputElementIN.send_keys(data[i][1])
-        time.sleep(.1)
+        time.sleep(.2)
 
         # Inserts time out data
         inputElementOUT = wait.until(EC.element_to_be_clickable((By.ID, "UM_TIME_OUT$" + str(i))))
-        time.sleep(.1)
+        time.sleep(.2)
         inputElementOUT.send_keys("null")
-        time.sleep(.1)
+        time.sleep(.2)
         inputElementOUT = wait.until(EC.element_to_be_clickable((By.ID, "UM_TIME_OUT$" + str(i))))
         inputElementOUT.send_keys(data[i][2])
-        time.sleep(.1)
+        time.sleep(.2)
 
 
 def close_program(keep_alive):
@@ -205,7 +205,7 @@ def close_program(keep_alive):
     Args:
         keep_alive: seconds that the program should stay open after all instructions complete
     """
-    
+
     temp = 0
 
     while (temp < keep_alive):
