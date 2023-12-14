@@ -1,0 +1,13 @@
+{
+  "modules": [
+    "selenium",
+    "pandas",
+    "webdriver-manager",
+    "google-api-python-client",
+    "google-auth-httplib2",
+    "google-auth-oauthlib",
+    "setuptools",
+    "pysimplegui"
+  ],
+  "setUp": true
+}
