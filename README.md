@@ -14,7 +14,7 @@ This bot will input your work hours and days based on the DoIT Student Desktop W
 * You must have **Google Chrome** installed for this application to work. Install chrome [here](https://www.google.com/chrome/).
 
 ### Step 1: Install the Program
-* **With Git**: Within your terminal, go to where you want your application to be stored and enter ``git clone -b macOS-Ease-of-Access --single-branch https://github.com/Dylan-Wimoth/TimeSheetBot.git``
+* **With Git**: Within your terminal, go to where you want your application to be stored and enter ``git clone -b macOS-main --single-branch https://github.com/Dylan-Wimoth/TimeSheetBot.git``
 
 ### Step 2: Installing Requirements
 * Open the folder in finder and click on the .DMG file. Then drag both items into your applications folder. ***Note:*** This file is password protected so ask either ``Dylan Wilmoth`` or ``Cary Gerhardt`` via webex for it.
