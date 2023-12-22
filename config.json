@@ -9,10 +9,10 @@
     "setuptools",
     "pysimplegui"
   ],
-  "setUp": true,
-  "user": "cary",
+  "setUp": false,
+  "user": "",
   "rememberMe": [
-    true,
+    false,
     false
   ]
 }
