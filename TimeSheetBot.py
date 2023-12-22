@@ -41,7 +41,6 @@ def getNameGui():
         with open('config.json', 'r') as json_file:
             config = json.load(json_file)
         config['user'] = user_name #Sets the user name object in config file
-        print(config['user'])
         with open('config.json', 'w') as json_file:
             json.dump(config, json_file, indent = 2) #Update json file with name
     except Exception as err:
@@ -100,8 +99,6 @@ def getRememberMeGui():
         choicesArray = config['rememberMe']
         choicesArray[0] = True
         choicesArray[1] = choice
-        print(choicesArray)
-        print(config['rememberMe'])
         config['rememberMe'] = choicesArray
         with open('config.json', 'w') as json_file:
             json.dump(config, json_file, indent = 2)
