@@ -8,26 +8,24 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import PySimpleGUI as sg
 import time
+import json
 
 TIME_OUT_SECONDS = 120 # Seconds until the program times out
 
-def getName():
+def getNameGui():
     """Gets the users name that can be used to parse the google calendar
-
-    Returns:
-        User's name as seen on calendar
+       Updates the config.json with the users input for being remembered for next time
     """
 
-    layout = [
+    nameLayout = [
         [sg.Text("Please enter your name as seen on Google Calendar")],
         [sg.InputText(key="-NAME-")],
         [sg.Button("Submit", bind_return_key=True)]
     ]
-    window = sg.Window("Name Input", layout)
+    nameWindow = sg.Window("Name Input", nameLayout)
 
     while True:
-        event, values = window.read()
-
+        event, values = nameWindow.read()
         if event == sg.WINDOW_CLOSED:
             break
         # Ensures that the user types a name into the box before submitting
@@ -35,15 +33,114 @@ def getName():
             user_name = values["-NAME-"]
             break
 
-    window.close()
+    nameWindow.close()
 
     # Attempt to return the user's name. If unable to do so, quit program
     try:
-        return user_name
-    except Exception:
+        #Updates the json file with the users name inputted into the gui
+        with open('config.json', 'r') as json_file:
+            config = json.load(json_file)
+        config['user'] = user_name #Sets the user name object in config file
+        print(config['user'])
+        with open('config.json', 'w') as json_file:
+            json.dump(config, json_file, indent = 2) #Update json file with name
+    except Exception as err:
         print("Please enter your name before closing the window.")
+        print(err)
         quit()
+
+def getName():
+    """Gets user name from config.json file
+
+    Returns:
+        str: Users name from the json file
+    """
+    try:
+        with open('config.json', 'r') as json_file:
+            config = json.load(json_file)
+    except Exception as err:
+        print(f"Error has occured in getName block 1: {err}")
+    try:
+        name = config['user'] #Gets users name
+        return name
+    except Exception as err:
+        print(f"Error has occured in getName block 2: {err}")
+        return "" #Return empty string other wise
+
+def getRememberMeGui():
+    """Asks the user if they want their name to be remembered
+    """
+    rememberMeLayout = [
+        [sg.Text("Would you like to remember your name on this PC?")],
+        [sg.Text("DISCLAIMER: If you want to change your decision edit the config.json rememberMe object")],
+        [sg.Button("Yes", bind_return_key = True),
+         sg.Button("No", bind_return_key = False)],
+        ]
     
+    window = sg.Window("Remember Me?", rememberMeLayout)
+
+    while True:
+        event, values = window.read()
+        if event == sg.WINDOW_CLOSED:
+            break
+        # Ensures that the user presses a button
+        elif event == "Yes":
+            choice = True
+            break
+        elif event == "No":
+            choice = False
+            break
+        
+    window.close()
+    
+    try:
+        #Updates the users rememberMe choices
+        with open('config.json', 'r') as json_file:
+            config = json.load(json_file)
+        choicesArray = config['rememberMe']
+        choicesArray[0] = True
+        choicesArray[1] = choice
+        print(choicesArray)
+        print(config['rememberMe'])
+        config['rememberMe'] = choicesArray
+        with open('config.json', 'w') as json_file:
+            json.dump(config, json_file, indent = 2)
+    except Exception as err:
+        print(f"Error has occured in rememberMe: {err}")   
+    
+
+def getRememberMe():
+    """Gets the users decision on how they want their bot to be run on their PC
+
+    Returns:
+        bool: If they wanted the bot to remember their name
+    """
+    try:
+        with open('config.json', 'r') as json_file:
+            config = json.load(json_file)
+    except Exception as err:
+        print(f"Error has occured in getRememberMe block 1: {err}")
+
+    try:
+        choice = config['rememberMe']
+        return choice
+    except Exception as Err:
+        print(f"Error has occured in getRememberMe block 3: {err}")
+        
+def nameInitalizer():
+    """Initalizes how the user wants the bot to operate on their machine
+        Version 1: The bot remembers the name
+        Version 2: The bot takes in the name on every start up
+    """
+    try:
+        if not getRememberMe()[0]: #Checks if the remember user pop up has shown for the user
+            getNameGui()
+            getRememberMeGui() 
+        elif getRememberMe()[0] and not getRememberMe()[1]:
+            getNameGui()
+    except Exception as err:
+        print(f"Error has occured in nameInitializer: {err}")
+
 def start_driver():
     """Starts the driver, goes to my.umbc.edu and full screens it. Creates timeout object.
 

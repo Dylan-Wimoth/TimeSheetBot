@@ -1,9 +1,10 @@
-from TimeSheetBot import close_program, insert_times, open_timesheet, start_driver, user_login, getName
+from TimeSheetBot import close_program, insert_times, open_timesheet, start_driver, user_login, getName, nameInitalizer
 from calendar_integration import generateToken, getEvents
 
 
 def main():
     creds = generateToken()
+    nameInitalizer()
     name = getName()
     driver, wait = start_driver()
     user_login(wait)
