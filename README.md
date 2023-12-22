@@ -16,7 +16,7 @@ This bot will input your work hours and days based on the DoIT Student Desktop W
 * **Without Git**: Click the green ``<> Code`` button on the top right of the repository. Click ``Download ZIP``. Once downloaded, extract the ZIP. 
 
 ### Step 2: Installing Requirements
-Open the zip file in your downloads folder and unzip to any destination you like. Then go into the folder created after extracting, then unzip the zip file named TimeSheetZip into the current directory.
+Open the zip file in your downloads folder and unzip to any destination you like. Then go into the folder created after extracting, then unzip the zip file named ``TimeSheetZip`` into the current directory.
 
 ### Step 3: Running the Program
 To run the program all you need to do is run the batch file named ``TimeSheetRunner`` and enjoy!
