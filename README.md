@@ -16,7 +16,7 @@ This bot will input your work hours and days based on the DoIT Student Desktop W
 * Click the green ``<> Code`` button on the top right of the repository. Click ``Download ZIP``. Once downloaded, extract the ZIP. 
 
 ### Step 2: Installing Requirements
-Open the zip file in your downloads folder and unzip to any destination you like. Then go into the folder created after extracting.
+* Open the zip file in your downloads folder and unzip to any destination you like. Then go into the folder created after extracting.
 
 ### Step 3: Credientials
 * Next download the credientials file from this box link [here](https://umbc.box.com/s/wdtb2fml0gpbcooydhkh0pzlc4odbn4n). Once downloaded paste into your TimeSheetBot folder directory.
