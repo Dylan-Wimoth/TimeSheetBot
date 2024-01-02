@@ -3,8 +3,8 @@ from tkinter import CURRENT
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.edge.service import Service as EdgeService
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import PySimpleGUI as sg
@@ -148,11 +148,11 @@ def start_driver():
 
     try:
         # Initiate the driver and go to my umbc
-        driver = webdriver.Edge()
+        driver = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()))
         driver.maximize_window()
         driver.get('https://my.umbc.edu/')
     except Exception as err:
-        print("Cannot open chrome. Error:", err)
+        print("Cannot open Edge. Error:", err)
         quit()
     
     # Forces the program to timeout after a certain amount of time passes
