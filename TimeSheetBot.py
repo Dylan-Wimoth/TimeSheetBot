@@ -148,7 +148,7 @@ def start_driver():
 
     try:
         # Initiate the driver and go to my umbc
-        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+        driver = webdriver.Edge()
         driver.maximize_window()
         driver.get('https://my.umbc.edu/')
     except Exception as err:
