@@ -147,7 +147,7 @@ def start_driver():
 
     try:
         # Initiate the driver and go to my umbc
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(ChromeDriverManager().install())
         driver.maximize_window()
         driver.get('https://my.umbc.edu/')
     except NameError as err:
