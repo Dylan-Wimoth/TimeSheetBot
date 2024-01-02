@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import PySimpleGUI as sg
@@ -147,10 +148,10 @@ def start_driver():
 
     try:
         # Initiate the driver and go to my umbc
-        driver = webdriver.Chrome(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install))
         driver.maximize_window()
         driver.get('https://my.umbc.edu/')
-    except NameError as err:
+    except Exception as err:
         print("Cannot open chrome. Error:", err)
         quit()
     
